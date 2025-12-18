@@ -46,7 +46,7 @@ export default function ChatUI() {
   useEffect(() => {
     if (!user) return;
 
-    socket.current = io("https://chat-app-backend-green-iota.vercel.app/", {
+    socket.current = io("https://chatappbackend-1-d8m2.onrender.com/", {
       auth: { token: user.token, userId: user.id, userName: user.name },
       reconnection: true,
       reconnectionAttempts: 5,
