@@ -46,7 +46,7 @@ export default function ChatUI() {
   useEffect(() => {
     if (!user) return;
 
-    socket.current = io("http://localhost:4600", {
+    socket.current = io("https://chat-app-backend-green-iota.vercel.app/", {
       auth: { token: user.token, userId: user.id, userName: user.name },
       reconnection: true,
       reconnectionAttempts: 5,
