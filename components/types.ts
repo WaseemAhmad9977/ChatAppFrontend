@@ -1,4 +1,4 @@
-export type MessageStatus = 'sending' | 'sent' | 'failed';
+export type MessageStatus = 'sending' | 'sent' | 'failed' | 'read';
 
 export interface Message {
   id: string;
@@ -7,7 +7,7 @@ export interface Message {
   senderName: string;
   text: string;
   ts: number;
-  status?: MessageStatus;
+  status: MessageStatus;
 }
 
 export interface Chat {

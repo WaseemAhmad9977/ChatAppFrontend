@@ -329,4 +329,8 @@ Strong state consistency
 
 Clean separation of concerns
 
+<<<<<<< HEAD
 Scalable and extensible design
+=======
+Scalable and extensible design
+>>>>>>> 01a8560 (fix:user interface design)

@@ -46,7 +46,7 @@ export default function ChatUI() {
   useEffect(() => {
     if (!user) return;
 
-    socket.current = io("https://chatappbackend-1-d8m2.onrender.com/", {
+    socket.current = io("http://localhost:4600", {
       auth: { token: user.token, userId: user.id, userName: user.name },
       reconnection: true,
       reconnectionAttempts: 5,
@@ -194,39 +194,40 @@ export default function ChatUI() {
       socket.current?.disconnect();
     };
   }, [user, activeChat]);
-useEffect(() => {
-  if (!activeChat || !socket.current || !user?.name) return;
-  if (!text.trim()) {
-    socket.current.emit("stopTyping", {
-      chatId: activeChat,
-      userName: user.name,
-    });
 
-    if (typingTimer.current) {
-      clearTimeout(typingTimer.current);
-      typingTimer.current = null;
+  useEffect(() => {
+    if (!activeChat || !socket.current || !user?.name) return;
+    if (!text.trim()) {
+      socket.current.emit("stopTyping", {
+        chatId: activeChat,
+        userName: user.name,
+      });
+
+      if (typingTimer.current) {
+        clearTimeout(typingTimer.current);
+        typingTimer.current = null;
+      }
+      return;
     }
-    return;
-  }
 
-  socket.current.emit("typing", {
-    chatId: activeChat,
-    userName: user.name,
-  });
-
-  if (typingTimer.current) clearTimeout(typingTimer.current);
-
-  typingTimer.current = setTimeout(() => {
-    socket.current?.emit("stopTyping", {
+    socket.current.emit("typing", {
       chatId: activeChat,
       userName: user.name,
     });
-  }, 1000);
 
-  return () => {
     if (typingTimer.current) clearTimeout(typingTimer.current);
-  };
-}, [text, activeChat, user?.name]);
+
+    typingTimer.current = setTimeout(() => {
+      socket.current?.emit("stopTyping", {
+        chatId: activeChat,
+        userName: user.name,
+      });
+    }, 1000);
+
+    return () => {
+      if (typingTimer.current) clearTimeout(typingTimer.current);
+    };
+  }, [text, activeChat, user?.name]);
 
   function handleAuth(name: string) {
     const userData: User = {
@@ -294,15 +295,8 @@ useEffect(() => {
 
     setText("");
 
-    socket.current?.emit("chatMessage", msg, (ack: { success: boolean }) => {
-      if (ack.success) {
-        setMessages((prev) => ({
-          ...prev,
-          [activeChat]: prev[activeChat].map((m) =>
-            m.id === msg.id ? { ...m, status: "sent" } : m
-          ),
-        }));
-      } else {
+    socket.current?.emit("chatMessage", msg, (ack: any) => {
+      if (!ack.success) {
         setMessages((prev) => ({
           ...prev,
           [activeChat]: prev[activeChat].map((m) =>
@@ -331,18 +325,20 @@ useEffect(() => {
   }
 
   return (
-    <div className="h-screen flex bg-zinc-100">
-      <Sidebar
-        userName={user?.name || ""}
-        connectionStatus={connectionStatus}
-        onlineUsers={onlineUsers}
-        chats={chats}
-        activeChat={activeChat}
-        onNewChat={() => setShowNewChatModal(true)}
-        onOpenChat={openChat}
-      />
+    <div className="h-screen flex bg-gray-50 overflow-hidden font-sans text-gray-800">
+      <div className={`w-full md:w-80 flex-col z-10 ${activeChat ? 'hidden md:flex' : 'flex'}`}>
+        <Sidebar
+          userName={user?.name || ""}
+          connectionStatus={connectionStatus}
+          onlineUsers={onlineUsers}
+          chats={chats}
+          activeChat={activeChat}
+          onNewChat={() => setShowNewChatModal(true)}
+          onOpenChat={openChat}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex-col bg-white/50 relative ${!activeChat ? 'hidden md:flex' : 'flex'}`}>
         <ChatArea
           activeChat={activeChat}
           chats={chats}
@@ -352,6 +348,7 @@ useEffect(() => {
           text={text}
           onTextChange={setText}
           onSend={sendMessage}
+          onBack={() => setActiveChat(null)} 
         />
       </div>
 

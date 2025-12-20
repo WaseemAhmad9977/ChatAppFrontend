@@ -15,22 +15,22 @@ export default function AuthPopup({ onAuth }: AuthPopupProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
-      <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 border border-slate-700/50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 border border-gray-100">
         <div className="text-center mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">Welcome to Chat</h1>
-          <p className="text-xs sm:text-sm text-slate-400">Enter your name to get started</p>
+          <h1 className="text-2xl font-bold text-gray-800">Welcome</h1>
+          <p className="text-sm text-gray-500 mt-2">Join the conversation</p>
         </div>
         <form onSubmit={handleAuth} className="space-y-4">
           <input
             autoFocus
             value={authName}
             onChange={(e) => setAuthName(e.target.value)}
-            className="w-full bg-slate-900/50 border border-slate-600 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-            placeholder="Your name"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all text-gray-700"
+            placeholder="Enter your name"
           />
-          <button type="submit" className="w-full px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-600/30">
-            Continue
+          <button type="submit" className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+            Start Chatting
           </button>
         </form>
       </div>
