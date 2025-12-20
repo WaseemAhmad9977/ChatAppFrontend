@@ -20,7 +20,7 @@ export default function ChatUI() {
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef(0);
   
-  // 🔥 FIX 1: activeChatRef का use करेंगे ताकि useEffect में activeChat की dependency न डालनी पड़े
+  
   const activeChatRef = useRef<string | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
@@ -37,7 +37,7 @@ export default function ChatUI() {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
 
-  // Load user from localStorage
+
   useEffect(() => {
     const savedUser = localStorage.getItem("chatUser");
     if (savedUser) {
@@ -47,17 +47,16 @@ export default function ChatUI() {
     }
   }, []);
 
-  // 🔥 FIX 2: jab bhi activeChat state badle, ref ko update kar do
   useEffect(() => {
     activeChatRef.current = activeChat;
   }, [activeChat]);
 
-  // 🔥 FIX 3: Dependency array se 'activeChat' HATA DIYA. Ab socket baar baar disconnect nahi hoga.
+ 
   useEffect(() => {
     if (!user) return;
 
-    // Socket Initialization
-    socket.current = io("http://localhost:4600", {
+  
+    socket.current = io("https://chatappbackend-1-d8m2.onrender.com", {
       auth: { token: user.token, userId: user.id, userName: user.name },
       reconnection: true,
       reconnectionAttempts: 5,
@@ -96,7 +95,6 @@ export default function ChatUI() {
         if (exists) return prev;
         return [...prev, chat];
       });
-      // New chat join automatically
       socket.current?.emit("joinChat", { chatId: chat.id, userId: user.id });
     });
 
@@ -134,8 +132,7 @@ export default function ChatUI() {
         };
       });
 
-      // 🔥 FIX 4: Yahan activeChat ki jagah activeChatRef.current use kiya
-      // Taaki closure ki wajah se purana value na mile
+
       const currentActiveChat = activeChatRef.current;
       const isFromAnotherChat = msg.chatId !== currentActiveChat;
       const isFromAnotherUser = msg.sender !== user.id;
@@ -196,9 +193,9 @@ export default function ChatUI() {
     return () => {
       socket.current?.disconnect();
     };
-  }, [user]); // 👈 Only 'user' dependency. activeChat hata diya.
+  }, [user]); 
 
-  // Typing Indicator Logic
+
   useEffect(() => {
     if (!activeChat || !socket.current || !user?.name) return;
     
@@ -310,7 +307,6 @@ export default function ChatUI() {
         chat.id === chatId ? { ...chat, unreadCount: 0 } : chat
       )
     );
-    // Request chat history
     if (!messages[chatId] || messages[chatId].length === 0) {
       socket.current?.emit("joinChat", { chatId, userId: user?.id });
     }
