@@ -20,7 +20,7 @@ export default function MessageList({ messages, currentUserId }: MessageListProp
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 scrollbar-hide">
       {messages.map((msg, index, arr) => {
         const isMine = msg.sender === currentUserId;
         const showSender = !isMine && (index === 0 || arr[index-1].sender !== msg.sender);
@@ -38,9 +38,9 @@ export default function MessageList({ messages, currentUserId }: MessageListProp
                 <span>{formatTime(msg.ts)}</span>
                 {isMine && msg.status && (
                   <span className="opacity-80">
-                    {msg.status === 'sending' && '•'}
+                    {msg.status === 'sending' && 'sending'}
                     {msg.status === 'sent' && '✓'}
-                    {msg.status === 'failed' && '!'}
+                    {msg.status === 'failed' && 'failed !'}
                   </span>
                 )}
               </div>

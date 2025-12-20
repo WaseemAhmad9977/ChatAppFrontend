@@ -19,6 +19,9 @@ export default function ChatUI() {
   const socket = useRef<Socket | null>(null);
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef(0);
+  
+  // 🔥 FIX 1: activeChatRef का use करेंगे ताकि useEffect में activeChat की dependency न डालनी पड़े
+  const activeChatRef = useRef<string | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
   const [showAuthPopup, setShowAuthPopup] = useState(true);
@@ -34,6 +37,7 @@ export default function ChatUI() {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
 
+  // Load user from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem("chatUser");
     if (savedUser) {
@@ -43,10 +47,17 @@ export default function ChatUI() {
     }
   }, []);
 
+  // 🔥 FIX 2: jab bhi activeChat state badle, ref ko update kar do
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
+
+  // 🔥 FIX 3: Dependency array se 'activeChat' HATA DIYA. Ab socket baar baar disconnect nahi hoga.
   useEffect(() => {
     if (!user) return;
 
-    socket.current = io("https://chatappbackend-1-d8m2.onrender.com", {
+    // Socket Initialization
+    socket.current = io("http://localhost:4600", {
       auth: { token: user.token, userId: user.id, userName: user.name },
       reconnection: true,
       reconnectionAttempts: 5,
@@ -85,7 +96,7 @@ export default function ChatUI() {
         if (exists) return prev;
         return [...prev, chat];
       });
-
+      // New chat join automatically
       socket.current?.emit("joinChat", { chatId: chat.id, userId: user.id });
     });
 
@@ -123,7 +134,10 @@ export default function ChatUI() {
         };
       });
 
-      const isFromAnotherChat = msg.chatId !== activeChat;
+      // 🔥 FIX 4: Yahan activeChat ki jagah activeChatRef.current use kiya
+      // Taaki closure ki wajah se purana value na mile
+      const currentActiveChat = activeChatRef.current;
+      const isFromAnotherChat = msg.chatId !== currentActiveChat;
       const isFromAnotherUser = msg.sender !== user.id;
 
       if (isFromAnotherChat && isFromAnotherUser) {
@@ -180,29 +194,19 @@ export default function ChatUI() {
     );
 
     return () => {
-      socket.current?.off("connect");
-      socket.current?.off("disconnect");
-      socket.current?.off("reconnecting");
-      socket.current?.off("onlineUsers");
-      socket.current?.off("initialChats");
-      socket.current?.off("chatInvite");
-      socket.current?.off("chatHistory");
-      socket.current?.off("chatMessage");
-      socket.current?.off("messageStatus");
-      socket.current?.off("typing");
-      socket.current?.off("stopTyping");
       socket.current?.disconnect();
     };
-  }, [user, activeChat]);
+  }, [user]); // 👈 Only 'user' dependency. activeChat hata diya.
 
+  // Typing Indicator Logic
   useEffect(() => {
     if (!activeChat || !socket.current || !user?.name) return;
+    
     if (!text.trim()) {
       socket.current.emit("stopTyping", {
         chatId: activeChat,
         userName: user.name,
       });
-
       if (typingTimer.current) {
         clearTimeout(typingTimer.current);
         typingTimer.current = null;
@@ -235,7 +239,6 @@ export default function ChatUI() {
       name,
       token: `mock_jwt_${Date.now()}`,
     };
-
     localStorage.setItem("chatUser", JSON.stringify(userData));
     setUser(userData);
     setShowAuthPopup(false);
@@ -247,14 +250,12 @@ export default function ChatUI() {
     participants: string[]
   ) {
     if (!user) return;
-
     const participantNames = [
       user.name,
       ...participants.map(
-        (id) => onlineUsers.find((u) => u.id === id)?.name || "not knows"
+        (id) => onlineUsers.find((u) => u.id === id)?.name || "Unknown"
       ),
     ];
-
     const newChat: Chat = {
       id: `chat_${Date.now()}`,
       name,
@@ -263,7 +264,6 @@ export default function ChatUI() {
       participantNames,
       unreadCount: 0,
     };
-
     socket.current?.emit("createChat", newChat);
     setChats((prev) => [...prev, newChat]);
     socket.current?.emit("joinChat", { chatId: newChat.id, userId: user.id });
@@ -274,7 +274,6 @@ export default function ChatUI() {
   function sendMessage() {
     const trimmed = text.trim();
     if (!trimmed || !activeChat || !user) return;
-
     const msg: Message = {
       id: `msg_${Date.now()}_${Math.random()}`,
       chatId: activeChat,
@@ -284,7 +283,6 @@ export default function ChatUI() {
       ts: Date.now(),
       status: "sending",
     };
-
     setMessages((prev) => {
       const newState = { ...prev };
       const chatId = activeChat;
@@ -292,9 +290,7 @@ export default function ChatUI() {
       newState[chatId] = [...oldMessages, msg];
       return newState;
     });
-
     setText("");
-
     socket.current?.emit("chatMessage", msg, (ack: any) => {
       if (!ack.success) {
         setMessages((prev) => ({
@@ -314,8 +310,8 @@ export default function ChatUI() {
         chat.id === chatId ? { ...chat, unreadCount: 0 } : chat
       )
     );
-
-    if (!messages[chatId]) {
+    // Request chat history
+    if (!messages[chatId] || messages[chatId].length === 0) {
       socket.current?.emit("joinChat", { chatId, userId: user?.id });
     }
   }
@@ -325,7 +321,8 @@ export default function ChatUI() {
   }
 
   return (
-    <div className="h-screen flex bg-gray-50 overflow-hidden font-sans text-gray-800">
+    <div className="h-[100dvh] flex bg-gray-50 overflow-hidden font-sans text-gray-800">
+      {/* Sidebar */}
       <div className={`w-full md:w-80 flex-col z-10 ${activeChat ? 'hidden md:flex' : 'flex'}`}>
         <Sidebar
           userName={user?.name || ""}
@@ -338,6 +335,7 @@ export default function ChatUI() {
         />
       </div>
 
+      {/* Chat Area */}
       <div className={`flex-1 flex-col bg-white/50 relative ${!activeChat ? 'hidden md:flex' : 'flex'}`}>
         <ChatArea
           activeChat={activeChat}
@@ -348,7 +346,7 @@ export default function ChatUI() {
           text={text}
           onTextChange={setText}
           onSend={sendMessage}
-          onBack={() => setActiveChat(null)} 
+          onBack={() => setActiveChat(null)}
         />
       </div>
 

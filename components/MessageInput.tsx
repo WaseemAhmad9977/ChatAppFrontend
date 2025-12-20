@@ -1,3 +1,4 @@
+import { GrSend } from "react-icons/gr";
 interface MessageInputProps {
   text: string;
   onTextChange: (text: string) => void;
@@ -19,7 +20,7 @@ export default function MessageInput({ text, onTextChange, onSend }: MessageInpu
           onClick={onSend}
           disabled={!text.trim()}
           className="h-9 w-9 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-all shadow-md">
-           <span className="text-xs font-bold">➤</span>
+           <span className="text-xs font-bold"><GrSend /></span>
         </button>
       </div>
     </div>
