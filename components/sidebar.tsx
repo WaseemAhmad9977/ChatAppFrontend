@@ -1,4 +1,5 @@
 import { Chat, OnlineUser, ConnectionStatus } from './types';
+import { CiChat1 } from "react-icons/ci";
 
 interface SidebarProps {
   userName: string;
@@ -21,16 +22,20 @@ export default function Sidebar({
 }: SidebarProps) {
   return (
     <div className="h-full bg-white border-r border-gray-100 flex flex-col">
-      {/* Header */}
       <div className="p-5 border-b border-gray-100 bg-white/50 backdrop-blur-sm">
         <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="font-bold text-xl text-gray-800 tracking-tight">Messages</h2>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className={`h-2 w-2 rounded-full ${connectionStatus === 'connected' ? 'bg-emerald-500' : 'bg-amber-500'} animate-pulse`} />
+          <div className="flex items-center gap-1.5 mt-1">
+              {connectionStatus === 'reconnecting' ? (
+                  <span className="h-3 w-3 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                ) : (
+                  <span className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
+                    connectionStatus === 'connected' 
+                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                      : 'bg-rose-500' 
+                  }`} />
+                )}
               <p className="text-xs font-medium text-gray-500 capitalize">{userName}</p>
             </div>
-          </div>
           <button
             onClick={onNewChat}
             className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors"
@@ -40,7 +45,7 @@ export default function Sidebar({
           </button>
         </div>
         
-        {/* Online Users */}
+      
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
              {onlineUsers.length === 0 ? (
                 <span className="text-xs text-gray-400 italic">No one else online</span>
@@ -57,11 +62,10 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Chat List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-1">
         {chats.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-sm p-8 text-center bg-gray-50 rounded-2xl mx-2 border border-gray-100">
-            <span className="text-2xl mb-2">💭</span>
+            <span className="text-2xl mb-2"><CiChat1 /></span>
             No chats yet.<br/>Start a conversation!
           </div>
         ) : (
