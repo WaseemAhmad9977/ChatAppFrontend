@@ -44,7 +44,6 @@ export default function ChatArea({
 
   return (
     <div className='flex flex-col flex-1 h-full bg-white md:bg-gray-50/50 relative'>
-      {/* Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-gray-100 p-4 sticky top-0 z-20 flex items-center gap-3">
         <button onClick={onBack} className="md:hidden p-2 -ml-2 text-gray-500 hover:text-gray-800">
            <span className="text-xl">←</span>
